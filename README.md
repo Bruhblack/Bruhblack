@@ -126,7 +126,36 @@ tab4:AddButton({
     end
 })
 
--- Create the "Misc" tab
+-- Create the "Jigoku" tab
+local jigokuTab = window:MakeTab({
+    Name = "Jigoku",
+    Icon = "rbxassetid://4483345998",
+    Premium = false
+})
+
+-- Teleport positions for Jigoku
+local cutscenePosition = Vector3.new(609.5408325195312, 11.908461570739746, 1083.739990234375) -- Updated position
+local safeZonePosition = Vector3.new(604.8815307617188, 83.77764892578125, 1116.31787109375)
+
+-- Create the button to teleport to cutscenes
+jigokuTab:AddButton({
+    Name = "Teleport to Cutscenes",
+    Callback = function()
+        local character = player.Character or player.CharacterAdded:Wait()
+        character:SetPrimaryPartCFrame(CFrame.new(cutscenePosition))
+    end
+})
+
+-- Create the button to teleport to safe zone
+jigokuTab:AddButton({
+    Name = "Safe Zone",
+    Callback = function()
+        local character = player.Character or player.CharacterAdded:Wait()
+        character:SetPrimaryPartCFrame(CFrame.new(safeZonePosition))
+    end
+})
+
+-- Create the "Misc" tab (now at the end)
 local miscTab = window:MakeTab({
     Name = "Misc",
     Icon = "rbxassetid://4483345998",
@@ -154,6 +183,67 @@ end
 miscTab:AddButton({
     Name = "Toggle FullBright",
     Callback = ToggleFullBright
+})
+
+-- ESP Functionality
+local espEnabled = false
+local espHighlights = {}
+
+local function createESP(npc)
+    if npc:FindFirstChild("Humanoid") and not game.Players:GetPlayerFromCharacter(npc) then
+        local highlight = Instance.new("Highlight")
+        highlight.Adornee = npc
+        highlight.FillColor = Color3.new(1, 0, 0) -- Red fill color
+        highlight.FillTransparency = 0.5 -- Adjust fill transparency for visibility
+        highlight.OutlineColor = Color3.new(1, 1, 1) -- White outline color
+        highlight.OutlineTransparency = 0 -- Outline is fully visible
+        highlight.Parent = npc
+
+        espHighlights[npc] = highlight
+    end
+end
+
+local function removeESP(npc)
+    if espHighlights[npc] then
+        espHighlights[npc]:Destroy()
+        espHighlights[npc] = nil
+    end
+end
+
+local function toggleESP(isEnabled)
+    espEnabled = isEnabled
+
+    if espEnabled then
+        -- Apply ESP to existing NPCs
+        for _, npc in ipairs(workspace:GetChildren()) do
+            if npc:IsA("Model") and npc:FindFirstChild("Humanoid") then
+                createESP(npc)
+            end
+        end
+
+        -- Connect events to add or remove ESP for new or removed NPCs
+        workspace.ChildAdded:Connect(function(npc)
+            if npc:IsA("Model") and npc:FindFirstChild("Humanoid") then
+                createESP(npc)
+            end
+        end)
+
+        workspace.ChildRemoved:Connect(function(npc)
+            removeESP(npc)
+        end)
+    else
+        -- Remove ESP from all NPCs
+        for _, npc in pairs(espHighlights) do
+            removeESP(npc)
+        end
+    end
+end
+
+miscTab:AddButton({
+    Name = "ESP",
+    Callback = function()
+        toggleESP(not espEnabled)
+    end
 })
 
 -- Make the window visible
