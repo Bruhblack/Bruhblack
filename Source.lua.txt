@@ -1171,7 +1171,7 @@ function redzlib:MakeWindow(Configs)
     local BName = Configs.Name or Configs.Title or "Button!"
     local BDescription = Configs.Description or Configs.Desc or ""
     local NotificationMessage = Configs.Notification or (BName .. " clicked!") -- Default message
-    local Callback = Configs.Callback or function() end  -- Ensure Callback is valid
+    local Callback = Configs.Callback or function() end -- Ensure Callback is valid
 
     local FButton, LabelFunc = ButtonFrame(Container, BName, BDescription, UDim2.new(1, -20))
 
@@ -1198,6 +1198,63 @@ function redzlib:MakeWindow(Configs)
     end
 
     return Button
+end
+local function ShowCustomNotification(message, duration)
+    duration = duration or 5
+
+    -- Create ScreenGui
+    local screenGui = Instance.new("ScreenGui", game.CoreGui)
+    screenGui.ResetOnSpawn = false
+
+    -- Create Notification Frame
+    local notificationFrame = Instance.new("Frame", screenGui)
+    notificationFrame.Size = UDim2.new(0, 320, 0, 70)
+    notificationFrame.Position = UDim2.new(1, 10, 1, -100)
+    notificationFrame.BackgroundTransparency = 1
+    notificationFrame.BorderSizePixel = 0
+
+    -- Background Image (Keeps "Justine Hub" Visible)
+    local bgImage = Instance.new("ImageLabel", notificationFrame)
+    bgImage.Size = UDim2.new(1, 0, 1, 0)
+    bgImage.Position = UDim2.new(0, 0, 0, 0)
+    bgImage.Image = "rbxassetid://115815646341731"
+    bgImage.ScaleType = Enum.ScaleType.Stretch
+    bgImage.BackgroundTransparency = 1
+    bgImage.BorderSizePixel = 0
+
+    -- Message Text (Placed Lower)
+    local textLabel = Instance.new("TextLabel", notificationFrame)
+    textLabel.Size = UDim2.new(1, -20, 1, -30) -- Moved text lower
+    textLabel.Position = UDim2.new(0, 10, 0, 30) -- Adjusted to not cover "Justine Hub"
+    textLabel.Text = message
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.TextScaled = true
+    textLabel.BackgroundTransparency = 1
+    textLabel.BorderSizePixel = 0
+    textLabel.Font = Enum.Font.Gotham
+    textLabel.TextWrapped = true
+
+    -- Play notification sound (Executor-friendly)
+    local sound = Instance.new("Sound", game.CoreGui)
+    sound.SoundId = "rbxassetid://17582299860"
+    sound.Volume = 1
+    sound:Play()
+
+    -- Tween (Smooth Slide-in)
+    local TweenService = game:GetService("TweenService")
+    local fadeIn = TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), 
+        {Position = UDim2.new(1, -330, 1, -100)})
+    fadeIn:Play()
+
+    -- Wait for duration
+    task.wait(duration)
+
+    -- Tween (Smooth Fade-out)
+    local fadeOut = TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), 
+        {Position = UDim2.new(1, 10, 1, -100)})
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
+    screenGui:Destroy()
 end
 		function Tab:AddToggle(Configs)
 			local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
